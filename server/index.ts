@@ -1,7 +1,7 @@
 import { createServer, type ServerResponse } from 'node:http'
 import { searchBangalorePincodes } from '../src/api/pincodeSearch.ts'
 
-const port = Number(process.env.PORT ?? 3000)
+const port = Number(process.env.API_PORT ?? process.env.PORT ?? 3000)
 
 function sendJson(response: ServerResponse, statusCode: number, body: object): void {
   response.writeHead(statusCode, {

@@ -10,23 +10,42 @@ Install dependencies:
 npm install
 ```
 
-Start the API in one terminal:
+Start the API and the frontend together:
 
 ```bash
-npm run api
+npm start
 ```
 
-Start the frontend in another terminal:
+Open the local URL printed by Vite (http://localhost:5173 unless the port is taken).
+
+The frontend calls the API through a relative `/api` path, which Vite proxies to the
+API in both `dev` and `preview`. Set `API_PORT` if port 3000 is already in use.
+
+To run the two processes separately instead:
 
 ```bash
-npm run dev
+npm run api   # API on http://localhost:3000
+npm run dev   # frontend
 ```
 
-Open the local URL printed by Vite. Search the API directly with:
+Search the API directly with:
 
 ```text
 http://localhost:3000/api/pincodes?query=Whitefield
 ```
+
+## Searching
+
+A query matches, in this order of priority:
+
+1. an exact area, post office or alias name - `Whitefield`, `Kormangala`
+2. a pincode or pincode prefix - `560066`, `56010`
+3. a partial name - `nagar`, `layout`
+4. a district, city or state - `Bengaluru Urban`
+
+Matching ignores case, punctuation and accents, so `HSR-Layout` and `hsr layout` are
+equivalent. District matches need at least three characters so a single letter does not
+return the whole dataset.
 
 ## Quality checks
 

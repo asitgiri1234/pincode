@@ -26,7 +26,7 @@ function App() {
     const trimmedQuery = queryToSearch.trim()
 
     if (!trimmedQuery) {
-      setError('Enter an area or district to begin.')
+      setError('Enter an area, district or pincode to begin.')
       setResults([])
       setHasSearched(true)
       return
@@ -37,23 +37,23 @@ function App() {
     setHasSearched(true)
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/pincodes?query=${encodeURIComponent(trimmedQuery)}`,
-      )
-      const body = await response.json()
+      const response = await fetch(`/api/pincodes?query=${encodeURIComponent(trimmedQuery)}`)
 
       if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
         throw new Error(body.error ?? 'No matching pincode found.')
       }
 
-      const searchResponse = body as SearchResponse
+      const searchResponse = (await response.json()) as SearchResponse
       setResults(searchResponse.results)
     } catch (requestError) {
       setResults([])
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : 'The pincode service is unavailable.',
+        requestError instanceof TypeError
+          ? 'Could not reach the pincode service. Start it with "npm run api" and try again.'
+          : requestError instanceof Error
+            ? requestError.message
+            : 'The pincode service is unavailable.',
       )
     } finally {
       setIsLoading(false)
@@ -80,19 +80,20 @@ function App() {
           <p className="eyebrow">LOCAL POSTAL DIRECTORY</p>
           <h1 id="page-title">Find the right pincode.</h1>
           <p className="intro-copy">
-            Search Bangalore areas and districts to find their postal code in seconds.
+            Search Bangalore areas, aliases and districts to find their postal code in
+            seconds. You can also look up an area by its pincode.
           </p>
         </div>
 
         <form className="search-form" onSubmit={handleSubmit}>
-          <label htmlFor="area-search">Area or district name</label>
+          <label htmlFor="area-search">Area, district or pincode</label>
           <div className="search-row">
             <input
               id="area-search"
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Try Whitefield or Indiranagar"
+              placeholder="Try Whitefield, Bengaluru Urban or 560066"
               autoComplete="off"
             />
             <button type="submit" disabled={isLoading}>
@@ -123,7 +124,11 @@ function App() {
         <div className="results-heading">
           <div>
             <p className="eyebrow">SEARCH RESULTS</p>
-            <h2>{results.length > 0 ? `${results.length} locations found` : 'Your results'}</h2>
+            <h2>
+              {results.length > 0
+                ? `${results.length} ${results.length === 1 ? 'location' : 'locations'} found`
+                : 'Your results'}
+            </h2>
           </div>
           {results.length > 0 && <span className="result-count">BANGALORE ONLY</span>}
         </div>
